@@ -1,7 +1,7 @@
 
 # Composite calculator
 
-These scripts can describe the comportament of composite materials that have multiple layers, it uses the following steps:
+These scripts can describe the behavior of composite materials that have multiple layers, it uses the following steps:
 
     The `Composite` class represents a composite material with multiple layers and calculates various
     properties and stress distributions within the material.
