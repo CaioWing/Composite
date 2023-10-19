@@ -1,4 +1,5 @@
 import numpy as np
+import json
 
 class Composite():
     """
@@ -148,9 +149,9 @@ class Composite():
             self.sigma_global.append(np.dot(self.Q_[i-1], self.epslon_0_global + (self.h[i] - self.h[i-1])*self.K_global))
             self.sigma_local.append(np.dot(T, self.sigma_global[i-1]))
             
-            self.blades_data['blade-' + str(i)] = {'Global sigma' : self.sigma_global[i-1],
-                                                  'Local sigma' : self.sigma_local[i-1],
-                                                  'Deformation' : self.epslon_0_global}
+            self.blades_data['blade-' + str(i)] = {'Global sigma' : self.sigma_global[i-1].tolist(),
+                                                  'Local sigma' : self.sigma_local[i-1].tolist(),
+                                                  'Deformation' : self.epslon_0_global.tolist()}
         
     def run(self):
         """
@@ -160,6 +161,11 @@ class Composite():
         for n in range(n_blades):
             self.calc_MRRT(self.angles[n])
         self.calc_matrix()
+        
+    def save_data(self, filename : str = 'results.json'):
+        with open(filename, "w") as f:
+            json.dump(self.blades_data, f, indent=4)
+                
             
 if __name__ == "__main__":
     material_data = {'E11' : 19.76*10**9, 
@@ -173,5 +179,6 @@ if __name__ == "__main__":
                      **material_data)
             
     test.run()
+    test.save_data()
     print(test.Q_[0])
     print(test.blades_data["blade-1"])

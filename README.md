@@ -39,6 +39,9 @@ The code just need the specification of the layer's angle, the material data and
                      angles = [45, 0, 0, 45],
                      normal= [1000/10**-3, 200/10**-3, 0],
                      **material_data)
+    
+    test.run()
+    test.save_data()
 ## Install
 
 Just need to clone the project! 
