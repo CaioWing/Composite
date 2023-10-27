@@ -58,7 +58,7 @@ class Composite():
         self.n_layers = len(angles)
         self.N = normal
         self.M = momentum
-        self.h = [(-2+i)*t for i in range(self.n_layers + 1)]
+        self.h = [(-(self.n_layers//2)+i)*t/1000 for i in range(self.n_layers + 1)]
         self.angles = angles
         self.Q_ = []
         
@@ -180,5 +180,3 @@ if __name__ == "__main__":
             
     test.run()
     test.save_data()
-    print(test.Q_[0])
-    print(test.blades_data["blade-1"])
