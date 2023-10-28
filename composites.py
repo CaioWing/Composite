@@ -63,10 +63,13 @@ class Composite():
         self.Q_ = []
         
         for key, value in kwargs.items():
-            if type(value) == dict:
-                value = value['value']
-            setattr(self, key, value)
-    
+            try:
+                if type(value) == dict:
+                    value = value['value']
+                setattr(self, key, value)
+            except:
+                continue
+                
     def calc_RRT(self):
         """
         Calculate the Rigid Reduce Transform
