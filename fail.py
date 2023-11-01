@@ -141,7 +141,7 @@ def tsai_hill(blades : dict, data : dict = {}, sigma_name : str = "Local sigma")
         a = (blades[blade][sigma_name][0] / data['max_stress'][X_stress_limit]) ** 2
         b = (blades[blade][sigma_name][1] / data['max_stress'][Y_stress_limit]) ** 2
         c = blades[blade][sigma_name][0] * blades[blade][sigma_name][1] / (data['max_stress'][X_stress_limit] * data['max_stress'][Y_stress_limit])
-        d = (blades[blade][sigma_name][2] / data['max_stress'][Y_stress_limit]) ** 2
+        d = (blades[blade][sigma_name][2] / data['max_stress']['S12']) ** 2
         
 # (sigma_1/X)^2 + (sigma_2/Y)^2 - ...
 #         ((sigma_1 * sigma_2)/X^2) + (sigma_12/S)^2
