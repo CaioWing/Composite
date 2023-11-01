@@ -12,11 +12,10 @@ if __name__ == '__main__':
                                     "Yc" : -900*10**6,
                                     "S12" : 71*10**6}
                     }
-    mocota = 1069.6701
-    #1195.4162
+
     test = composite.Composite(t = 0.29, 
                      angles = [0, 45, 0, 45, 0, 45, 45, 0, 45, 0, 45, 0],
-                     normal= [mocota/10**-3, 0, 0],
+                     normal= [1195.4162/10**-3, 0, 0],
                      **material_data)
     
     # material_data = {'E11' : 19.76*10**9, 
