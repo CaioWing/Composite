@@ -12,12 +12,12 @@ if __name__ == '__main__':
                                     "Yc" : -900*10**6,
                                     "S12" : 71*10**6}
                     }
-
+    mocota = 1069.6701
+    #1195.4162
     test = composite.Composite(t = 0.29, 
                      angles = [0, 45, 0, 45, 0, 45, 45, 0, 45, 0, 45, 0],
-                     normal= [1069.6701/10**-3, 0, 0],
+                     normal= [mocota/10**-3, 0, 0],
                      **material_data)
-    
     
     # material_data = {'E11' : 19.76*10**9, 
     #                 'E22' : 1.97*10**9, 
@@ -35,4 +35,7 @@ if __name__ == '__main__':
                          data = material_data)
     
     criteria.tsai_wo(blades= test.blades_data, 
+                        data= material_data)
+    
+    criteria.tsai_hill(blades= test.blades_data, 
                         data= material_data)

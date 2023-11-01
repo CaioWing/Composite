@@ -33,6 +33,7 @@ class Composite():
     sigma_global = []
     sigma_local = []
     blades_data = {}
+    system_properties = {}
     
     def __init__(self, t : float = 3,
                  angles = [45, 0, 0, 45], 
@@ -58,6 +59,7 @@ class Composite():
         self.n_layers = len(angles)
         self.N = normal
         self.M = momentum
+        self.epsilon_local = []
         self.h = [(-(self.n_layers//2)+i)*t/1000 for i in range(self.n_layers + 1)]
         self.angles = angles
         self.Q_ = []
@@ -137,8 +139,21 @@ class Composite():
         self.C_line = self.B_line
         
         #deformações em relação aos eixos globais. Mesma para todas as lâminas
-        self.epslon_0_global = np.dot(self.A_line, np.array(self.N) + np.dot(self.B_line, self.M))
+        self.epsilon_global = np.dot(self.A_line, np.array(self.N) + np.dot(self.B_line, self.M))
         self.K_global = np.dot(self.C_line, np.array(self.N) + np.dot(self.D_line, self.M))
+        
+        self.system_properties['properties'] = {'A' : self.A,
+                                                'B' : self.B,
+                                                'D' : self.D,
+                                                'A_line' : self.A_line,
+                                                'B_line' : self.B_line,
+                                                'C_line' : self.C_line,
+                                                'D_line' : self.D_line,
+                                                'A_star' : self.A_star,
+                                                'B_star' : self.B_star,
+                                                'C_star' : self.C_star,
+                                                'D_star' : self.D_star,
+                                                'Global deformation' : self.epsilon_global}
         
         #calculando as tensões globais na lâmina
         for i in range(1, len(self.h)):
@@ -149,12 +164,13 @@ class Composite():
                           [n**2, m**2, -2*m*n],
                           [-m*n, m*n, m**2 - n**2]])
             
-            self.sigma_global.append(np.dot(self.Q_[i-1], self.epslon_0_global + (self.h[i] - self.h[i-1])*self.K_global))
+            self.sigma_global.append(np.dot(self.Q_[i-1], self.epsilon_global + (self.h[i] - self.h[i-1])*self.K_global))
             self.sigma_local.append(np.dot(T, self.sigma_global[i-1]))
+            self.epsilon_local.append(np.dot(T, self.epsilon_global))
             
             self.blades_data['blade-' + str(i)] = {'Global sigma' : self.sigma_global[i-1].tolist(),
                                                   'Local sigma' : self.sigma_local[i-1].tolist(),
-                                                  'Deformation' : self.epslon_0_global.tolist()}
+                                                  'Local deformation' : self.epsilon_local[i-1]}
         
     def run(self):
         """
@@ -165,10 +181,22 @@ class Composite():
             self.calc_MRRT(self.angles[n])
         self.calc_matrix()
         
-    def save_data(self, filename : str = 'results.json'):
+    def save_data(self, filename: str = 'results.json'):
+        combined_data = {
+            **self.system_properties,
+            **self.blades_data,
+        }
+
+        # Convert NumPy arrays to Python lists
+        def convert_to_json_serializable(obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+        # Serialize the data to JSON
         with open(filename, "w") as f:
-            json.dump(self.blades_data, f, indent=4)
-                
+            json.dump(combined_data, f, indent=4, default=convert_to_json_serializable)
+                    
             
 if __name__ == "__main__":
     material_data = {'E11' : 19.76*10**9, 
