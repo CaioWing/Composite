@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def print_message(status : bool, criteria : str, MS : float = None):
+def print_message(status : bool, criteria : str, MS = None):
     """
     The function "print_message" prints a message indicating the status of a given criteria.
     
@@ -12,7 +12,10 @@ def print_message(status : bool, criteria : str, MS : float = None):
     needs to be evaluated or verified
     :type criteria: str
     """
-    print("Check: {} -> {}. MS: {}".format(criteria, status, MS))
+    if MS != None and status == True:
+        print("Check: {} -> {}. MS: {}".format(criteria, status, MS))
+    else:
+        print("Check: {} -> {}.".format(criteria, status))
 
 # data : [Xt, Xc, Yt, Yc, S12] or/and [Xt', Xc', Yt', Yc', S12']  
 
@@ -33,56 +36,29 @@ def calculate_MS(blades : dict,
     """
     for blade in blades:
         print('\n', blade)
-        if 'max_stress' in list(data.keys()):
-            if blades[blade][sigma_name][0] > 0:
-                condition = blades[blade][sigma_name][0] < data['max_stress']["Xt"]
-                print_message(condition,
-                        "Sigma1" + " < " + "Xt",
-                        MS = data['max_stress']["Xt"]/blades[blade][sigma_name][0])
-            else:
-                condition = blades[blade][sigma_name][0] < data['max_stress']["Xc"]
-                print_message(condition,
-                        "Sigma1" + " > " + "Xc",
-                        MS = data['max_stress']["Xc"]/blades[blade][sigma_name][0])
-                
-            if blades[blade][sigma_name][1] > 0:
-                condition = blades[blade][sigma_name][1] < data['max_stress']["Yt"]
-                print_message(condition,
-                        "Sigma2" + " < " + "Yt",
-                        MS = data['max_stress']["Yt"]/blades[blade][sigma_name][1])
-            else:
-                condition = blades[blade][sigma_name][1] > data['max_stress']["Yc"]
-                print_message(condition,
-                        "Sigma2" + " > " + "Yc",
-                        MS = data['max_stress']["Yc"]/blades[blade][sigma_name][1])
-                
+        if 'max_stress' in data:
+            for i in range(2):
+                stress = blades[blade][sigma_name][i]
+                stress_type = "Xt" if stress > 0 else "Xc"
+                max_stress = data['max_stress'][stress_type]
+                condition = stress < max_stress if stress > 0 else stress > max_stress
+                print_message(condition, f"Sigma{i+1} {'<' if stress > 0 else '>'} {stress_type}", MS = abs(max_stress/stress) - 1)
+            
             condition = abs(blades[blade][sigma_name][2]) <= data['max_stress']["S12"]
-            print_message(condition,
-                    "Sigma12" + " <= " + "S12",
-                    MS = data['max_stress']["S12"]/abs(blades[blade][sigma_name][2]))
+            print_message(condition, "Sigma12 <= S12", MS = data['max_stress']["S12"]/abs(blades[blade][sigma_name][2]) - 1)
 
-        if 'max_deformation' in list(data.keys()):
-            if blades[blade]['Local deformation'][0] > 0:
-                condition = abs(blades[blade]['Local deformation'][0]) < data['max_deformation']["Xt'"]
-                print_message(condition,
-                        "Epsilon1" + " < " + "Xt'")
-            else:
-                condition = blades[blade]['Local deformation'][0] < data['max_deformation']["Xc'"]
-                print_message(condition,
-                        "Epsilon1" + " > " + "Xc'")
-                
-            if blades[blade]['Global sigma'][1] > 0:
-                condition = blades[blade]['Local deformation'][1] < data['max_deformation']["Yt'"]
-                print_message(condition,
-                        "Epsilon2" + " < " + "Yt'")
-            else:
-                condition = blades[blade]['Local deformation'][1] > data['max_deformation']["Yc'"]
-                print_message(condition,
-                        "Epsilon2" + " > " + "Yc'")
-                
-            condition = abs(blades[blade]['Global sigma'][2]) <= data['max_deformation']["S12'"]
-            print_message(condition,
-                    "Epsilon12" + " <= " + "S12'")
+
+    if 'max_deformation' in data:
+        for i in range(2):
+            deformation = blades[blade]['Local deformation'][i]
+            deformation_type = "Xt'" if deformation > 0 else "Xc'"
+            max_deformation = data['max_deformation'][deformation_type]
+            condition = abs(deformation) < max_deformation if deformation > 0 else deformation > max_deformation
+            print_message(condition, f"Epsilon{i+1} {'<' if deformation > 0 else '>'} {deformation_type}", MS = max_deformation/abs(deformation) - 1)
+        
+        condition = abs(blades[blade]['Local deformation'][2]) <= data['max_deformation']["S12'"]
+        print_message(condition, "Epsilon12 <= S12'", MS = abs(data['max_deformation']["S12'"])/abs(blades[blade]['Local deformation'][2]) - 1)
+
 
 def tsai_wo(blades : dict, data : dict = {}, sigma_name : str = "Local sigma"):
     """
@@ -132,6 +108,7 @@ def tsai_hill(blades : dict, data : dict = {}, sigma_name : str = "Local sigma")
     component for which the Tsai Hill criteria is being calculated. It is used to access the stress
     values from the `blades` dictionary, defaults to Local sigma
     :type sigma_name: str (optional)
+    
     """
     print('\n Tsai Hill criteria: \n')
     for blade in blades:
@@ -140,7 +117,7 @@ def tsai_hill(blades : dict, data : dict = {}, sigma_name : str = "Local sigma")
 
         a = (blades[blade][sigma_name][0] / data['max_stress'][X_stress_limit]) ** 2
         b = (blades[blade][sigma_name][1] / data['max_stress'][Y_stress_limit]) ** 2
-        c = blades[blade][sigma_name][0] * blades[blade][sigma_name][1] / (data['max_stress'][X_stress_limit] * data['max_stress'][Y_stress_limit])
+        c = blades[blade][sigma_name][0] * blades[blade][sigma_name][1] / (data['max_stress'][X_stress_limit])**2
         d = (blades[blade][sigma_name][2] / data['max_stress']['S12']) ** 2
     
         ms_factor = 1 / (np.sqrt(a + b - c + d)) - 1
